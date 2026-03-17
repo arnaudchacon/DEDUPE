@@ -72,7 +72,7 @@ def run_analysis(df_json, weights_tuple, threshold, use_blocking):
 
 
 # ── Header ───────────────────────────────────────────────────────────
-st.markdown(f"""
+st.markdown("""
 <div class="main-header">
     <h1>🔍 DedupPro — Probabilistic Record Deduplication</h1>
     <p>Detect and score duplicate CRM records using Levenshtein distance with configurable field weights</p>
@@ -231,7 +231,6 @@ if duplicates:
         fig_hist = px.histogram(
             x=scores, nbins=20,
             labels={"x": "Duplicate Score", "y": "Count"},
-            title="Score Distribution",
             color_discrete_sequence=[PRIMARY],
         )
         fig_hist.update_layout(**plotly_layout(
@@ -244,9 +243,9 @@ if duplicates:
                        title_font=dict(color=TEXT_PRIMARY, size=13),
                        title="Number of Pairs", showgrid=True),
             title=dict(text="Score Distribution",
-                       font=dict(color=TEXT_PRIMARY, size=16, weight=600)),
+                       font=dict(color=TEXT_PRIMARY, size=16)),
         ))
-        st.plotly_chart(fig_hist, use_container_width=True)
+        st.plotly_chart(fig_hist, use_container_width=True, key="chart_score_dist")
 
     with col_donut:
         classifications = [d["classification"] for d in duplicates]
@@ -270,10 +269,10 @@ if duplicates:
         )])
         fig_donut.update_layout(**plotly_layout(
             title=dict(text="Record Classification",
-                       font=dict(color=TEXT_PRIMARY, size=16, weight=600)),
+                       font=dict(color=TEXT_PRIMARY, size=16)),
             showlegend=False,
         ))
-        st.plotly_chart(fig_donut, use_container_width=True)
+        st.plotly_chart(fig_donut, use_container_width=True, key="chart_classification")
 
 # ── Blocking stats ───────────────────────────────────────────────────
 if blocking_stats and use_blocking:
@@ -290,11 +289,12 @@ tab_pairs, tab_clusters, tab_field, tab_before_after, tab_export = st.tabs([
     "📈 Before / After", "📥 Export",
 ])
 
-# ── Tab 1: Duplicate Pairs ───────────────────────────────────────────
+# ── Tab 1: Duplicate Pairs — TABLE VIEW + DETAIL CARD ────────────────
 with tab_pairs:
     if not duplicates:
         st.info("No duplicate pairs found at the current threshold.")
     else:
+        # Filter controls
         filter_col1, filter_col2 = st.columns([1, 3])
         with filter_col1:
             filter_class = st.selectbox(
@@ -308,104 +308,182 @@ with tab_pairs:
 
         st.markdown(f"**Showing {len(filtered)} pairs** (sorted by score, highest first)")
 
-        for i, dup in enumerate(filtered[:50]):
+        # Build the summary table
+        table_data = []
+        for i, dup in enumerate(filtered):
+            cls = dup["classification"]
+            if cls == "Definite Duplicate":
+                indicator = "🔴"
+            elif cls == "Probable Duplicate":
+                indicator = "🟠"
+            else:
+                indicator = "🟡"
+            table_data.append({
+                "": indicator,
+                "Score": dup["total_score"],
+                "Classification": cls,
+                "Record A": dup["company_a"],
+                "Record B": dup["company_b"],
+                "ID A": dup["record_id_a"],
+                "ID B": dup["record_id_b"],
+            })
+
+        table_df = pd.DataFrame(table_data)
+
+        # Show the table (paginated — 10 per page)
+        PAGE_SIZE = 10
+        total_pages = max(1, (len(table_df) + PAGE_SIZE - 1) // PAGE_SIZE)
+
+        if "pairs_page" not in st.session_state:
+            st.session_state.pairs_page = 0
+
+        page = st.session_state.pairs_page
+        start_idx = page * PAGE_SIZE
+        end_idx = min(start_idx + PAGE_SIZE, len(table_df))
+        page_df = table_df.iloc[start_idx:end_idx]
+
+        st.dataframe(
+            page_df,
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "Score": st.column_config.NumberColumn(format="%.1f"),
+                "": st.column_config.TextColumn(width="small"),
+            },
+        )
+
+        # Pagination controls
+        nav_col1, nav_col2, nav_col3 = st.columns([1, 2, 1])
+        with nav_col1:
+            if st.button("← Previous", disabled=(page == 0), key="prev_page"):
+                st.session_state.pairs_page = max(0, page - 1)
+                st.rerun()
+        with nav_col2:
+            st.markdown(
+                f"<p style='text-align:center;color:{TEXT_SECONDARY}'>Page {page+1} of {total_pages}</p>",
+                unsafe_allow_html=True,
+            )
+        with nav_col3:
+            if st.button("Next →", disabled=(page >= total_pages - 1), key="next_page"):
+                st.session_state.pairs_page = min(total_pages - 1, page + 1)
+                st.rerun()
+
+        # Detail view — select a pair to inspect
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        pair_options = [
+            f"{dup['company_a']} ↔ {dup['company_b']} (Score: {dup['total_score']})"
+            for dup in filtered[:50]
+        ]
+
+        if pair_options:
+            selected_idx = st.selectbox(
+                "Select a pair to view details",
+                range(len(pair_options)),
+                format_func=lambda x: pair_options[x],
+                key="pair_detail_select",
+            )
+
+            dup = filtered[selected_idx]
             score = dup["total_score"]
             cls = dup["classification"]
 
-            # Badge colour for the score
             if score >= 90:
-                badge_bg, badge_text = TEXT_ERROR, TEXT_REVERSED
                 badge_class = "score-definite"
             elif score >= 75:
-                badge_bg, badge_text = ACCENT_CORAL, TEXT_REVERSED
                 badge_class = "score-probable"
             else:
-                badge_bg, badge_text = TEXT_WARNING, TEXT_PRIMARY
                 badge_class = "score-possible"
 
-            # Expander label includes company names + score preview
-            expander_label = f"{dup['company_a']}  ↔  {dup['company_b']}  —  Score: {score}  [{cls}]"
+            rec_a = df.iloc[dup["idx_a"]]
+            rec_b = df.iloc[dup["idx_b"]]
 
-            with st.expander(expander_label, expanded=(i < 3)):
-                # Score badge
-                st.markdown(
-                    f'<span class="score-badge {badge_class}">Score: {score} — {cls}</span>',
-                    unsafe_allow_html=True,
-                )
+            # Detail card header
+            st.markdown(f"""
+            <div class="detail-card">
+                <div class="detail-card-header">
+                    {dup['company_a']} ↔ {dup['company_b']}
+                </div>
+                <span class="score-badge {badge_class}">Score: {score} — {cls}</span>
+            </div>
+            """, unsafe_allow_html=True)
 
-                rec_a = df.iloc[dup["idx_a"]]
-                rec_b = df.iloc[dup["idx_b"]]
+            # Side-by-side comparison with diff highlighting
+            fields_to_diff = [
+                ("Company Name", "company_name"),
+                ("Contact Name", "contact_name"),
+                ("Email", "email"),
+                ("Phone", "phone"),
+                ("Address", "address"),
+                ("City", "city"),
+                ("Website", "website"),
+            ]
 
-                # Side-by-side comparison with diff highlighting
-                fields_to_diff = [
-                    ("Company Name", "company_name"),
-                    ("Contact Name", "contact_name"),
-                    ("Email", "email"),
-                    ("Phone", "phone"),
-                    ("Address", "address"),
-                    ("City", "city"),
-                    ("Website", "website"),
-                ]
+            col_a, col_b = st.columns(2)
+            with col_a:
+                st.markdown(f"**Record A** ({dup['record_id_a']})")
+            with col_b:
+                st.markdown(f"**Record B** ({dup['record_id_b']})")
+
+            for label, field in fields_to_diff:
+                val_a = str(rec_a.get(field, "")) if pd.notna(rec_a.get(field, "")) else ""
+                val_b = str(rec_b.get(field, "")) if pd.notna(rec_b.get(field, "")) else ""
+                diff_a, diff_b = generate_diff_html(val_a, val_b)
 
                 col_a, col_b = st.columns(2)
                 with col_a:
-                    st.markdown(f"**Record A** ({dup['record_id_a']})")
+                    st.markdown(
+                        f"<small style='color:{TEXT_SECONDARY}'>{label}</small><br>"
+                        f"<span style='color:{TEXT_PRIMARY}'>{diff_a}</span>",
+                        unsafe_allow_html=True,
+                    )
                 with col_b:
-                    st.markdown(f"**Record B** ({dup['record_id_b']})")
+                    st.markdown(
+                        f"<small style='color:{TEXT_SECONDARY}'>{label}</small><br>"
+                        f"<span style='color:{TEXT_PRIMARY}'>{diff_b}</span>",
+                        unsafe_allow_html=True,
+                    )
 
-                for label, field in fields_to_diff:
-                    val_a = str(rec_a.get(field, "")) if pd.notna(rec_a.get(field, "")) else ""
-                    val_b = str(rec_b.get(field, "")) if pd.notna(rec_b.get(field, "")) else ""
-                    diff_a, diff_b = generate_diff_html(val_a, val_b)
+            # Per-field scores — horizontal bars with conditional colouring
+            st.markdown(
+                f"<p style='color:{TEXT_PRIMARY};font-weight:600;margin-top:1rem'>Field Similarity Scores</p>",
+                unsafe_allow_html=True,
+            )
+            fs = dup["field_scores"]
+            field_labels = {
+                "company_name": "Company",
+                "email": "Email",
+                "phone": "Phone",
+                "address": "Address",
+                "contact_name": "Contact",
+                "website": "Website",
+            }
+            bar_colors = [score_color(fs.get(k, 0)) for k in field_labels]
 
-                    col_a, col_b = st.columns(2)
-                    with col_a:
-                        st.markdown(
-                            f"<small style='color:{TEXT_SECONDARY}'>{label}</small><br>"
-                            f"<span style='color:{TEXT_PRIMARY}'>{diff_a}</span>",
-                            unsafe_allow_html=True,
-                        )
-                    with col_b:
-                        st.markdown(
-                            f"<small style='color:{TEXT_SECONDARY}'>{label}</small><br>"
-                            f"<span style='color:{TEXT_PRIMARY}'>{diff_b}</span>",
-                            unsafe_allow_html=True,
-                        )
-
-                # Per-field scores — horizontal bars with conditional colouring
-                st.markdown(f"<p style='color:{TEXT_PRIMARY};font-weight:600;margin-top:0.8rem'>Field Similarity Scores</p>", unsafe_allow_html=True)
-                fs = dup["field_scores"]
-                field_labels = {
-                    "company_name": "Company",
-                    "email": "Email",
-                    "phone": "Phone",
-                    "address": "Address",
-                    "contact_name": "Contact",
-                    "website": "Website",
-                }
-                bar_colors = [score_color(fs.get(k, 0)) for k in field_labels]
-
-                fig_fields = go.Figure(data=[go.Bar(
-                    x=[fs.get(k, 0) for k in field_labels],
-                    y=list(field_labels.values()),
-                    orientation="h",
-                    marker_color=bar_colors,
-                    text=[f"{fs.get(k, 0):.0f}" for k in field_labels],
-                    textposition="inside",
-                    textfont=dict(color=TEXT_PRIMARY, size=12),
-                )])
-                fig_fields.update_layout(**plotly_layout(
-                    height=200,
-                    margin=dict(l=70, r=30, t=10, b=10),
-                    xaxis=dict(range=[0, 100], title="Similarity Score",
-                               gridcolor=SHADOW, linecolor=BORDER,
-                               tickfont=dict(color=TEXT_SECONDARY, size=11),
-                               title_font=dict(color=TEXT_PRIMARY, size=12),
-                               showgrid=True),
-                    yaxis=dict(tickfont=dict(color=TEXT_PRIMARY, size=12),
-                               gridcolor=SHADOW, linecolor=BORDER),
-                ))
-                st.plotly_chart(fig_fields, use_container_width=True)
+            fig_fields = go.Figure(data=[go.Bar(
+                x=[fs.get(k, 0) for k in field_labels],
+                y=list(field_labels.values()),
+                orientation="h",
+                marker_color=bar_colors,
+                text=[f"{fs.get(k, 0):.0f}" for k in field_labels],
+                textposition="inside",
+                textfont=dict(color=TEXT_PRIMARY, size=12),
+            )])
+            fig_fields.update_layout(**plotly_layout(
+                height=220,
+                margin=dict(l=80, r=30, t=10, b=10),
+                xaxis=dict(range=[0, 100], title="Similarity Score",
+                           gridcolor=SHADOW, linecolor=BORDER,
+                           tickfont=dict(color=TEXT_SECONDARY, size=11),
+                           title_font=dict(color=TEXT_PRIMARY, size=12),
+                           showgrid=True),
+                yaxis=dict(tickfont=dict(color=TEXT_PRIMARY, size=12),
+                           gridcolor=SHADOW, linecolor=BORDER),
+            ))
+            st.plotly_chart(
+                fig_fields, use_container_width=True,
+                key=f"chart_pair_detail_{selected_idx}",
+            )
 
 
 # ── Tab 2: Clusters ─────────────────────────────────────────────────
@@ -461,7 +539,6 @@ with tab_field:
             avg_scores[f] = sum(vals) / len(vals) if vals else 0
             low_scores_count[f] = sum(1 for v in vals if v < 50)
 
-        # Bar chart with conditional colours
         bar_colors_field = [
             ACCENT_GREEN if avg_scores[f] >= 80 else
             TEXT_WARNING if avg_scores[f] >= 60 else
@@ -480,7 +557,7 @@ with tab_field:
         )])
         fig_avg.update_layout(**plotly_layout(
             title=dict(text="Average Similarity Score by Field (across duplicate pairs)",
-                       font=dict(color=TEXT_PRIMARY, size=14, weight=600)),
+                       font=dict(color=TEXT_PRIMARY, size=14)),
             xaxis=dict(range=[0, 100], title="Average Score",
                        gridcolor=SHADOW, linecolor=BORDER, showgrid=True,
                        tickfont=dict(color=TEXT_SECONDARY, size=11),
@@ -490,7 +567,7 @@ with tab_field:
             height=300,
             margin=dict(l=120, r=30, t=50, b=40),
         ))
-        st.plotly_chart(fig_avg, use_container_width=True)
+        st.plotly_chart(fig_avg, use_container_width=True, key="chart_field_avg")
 
         # Mismatch table
         st.markdown("### Mismatch Summary")
@@ -531,7 +608,7 @@ with tab_before_after:
         ])
         fig_ba.update_layout(**plotly_layout(
             title=dict(text="Record Count: Before vs After",
-                       font=dict(color=TEXT_PRIMARY, size=14, weight=600)),
+                       font=dict(color=TEXT_PRIMARY, size=14)),
             barmode="group",
             height=350,
             margin=dict(t=50, b=30, l=50, r=30),
@@ -542,7 +619,7 @@ with tab_before_after:
             xaxis=dict(tickfont=dict(color=TEXT_PRIMARY, size=12)),
             legend=dict(font=dict(color=TEXT_PRIMARY)),
         ))
-        st.plotly_chart(fig_ba, use_container_width=True)
+        st.plotly_chart(fig_ba, use_container_width=True, key="chart_before_after")
 
     with col_ba2:
         fig_gauge = go.Figure(go.Indicator(
@@ -566,7 +643,7 @@ with tab_before_after:
             paper_bgcolor=BG_PAGE,
             font=dict(color=TEXT_PRIMARY),
         )
-        st.plotly_chart(fig_gauge, use_container_width=True)
+        st.plotly_chart(fig_gauge, use_container_width=True, key="chart_quality_gauge")
 
     # Summary text
     st.markdown(f"""

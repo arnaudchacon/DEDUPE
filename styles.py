@@ -87,9 +87,10 @@ def get_custom_css():
         }}
 
         /* Force all Streamlit text elements to dark */
-        .stApp p, .stApp span, .stApp label, .stApp div,
+        .stApp p, .stApp span, .stApp label,
         .stApp li, .stApp td, .stApp th, .stApp h1, .stApp h2,
-        .stApp h3, .stApp h4, .stApp h5, .stApp h6 {{
+        .stApp h3, .stApp h4, .stApp h5, .stApp h6,
+        .stApp .stMarkdown, .stApp .stText {{
             color: {TEXT_PRIMARY} !important;
         }}
 
@@ -158,7 +159,25 @@ def get_custom_css():
             color: {TEXT_PRIMARY} !important;
         }}
 
-        /* ── Duplicate pair card ───────────────────────────────────── */
+        /* ── Detail card (pair comparison) ─────────────────────────── */
+        .detail-card {{
+            background: {BG_PAGE};
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            box-shadow: 0 2px 8px {SHADOW};
+            border: 1px solid {BORDER};
+        }}
+        .detail-card-header {{
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: {SECONDARY} !important;
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid {ACCENT_LILAC};
+        }}
+
+        /* ── Pair card (summary box) ──────────────────────────────── */
         .pair-card {{
             background: {BG_PAGE};
             border-radius: 10px;
@@ -216,7 +235,7 @@ def get_custom_css():
             color: {TEXT_PRIMARY} !important;
         }}
 
-        /* Slider thumb colour → brand blue */
+        /* ── Slider — brand blue thumb, track, and fill ────────────── */
         .stSlider [data-baseweb="slider"] div[role="slider"] {{
             background-color: {PRIMARY} !important;
             border-color: {PRIMARY} !important;
@@ -224,19 +243,62 @@ def get_custom_css():
         .stSlider [data-baseweb="slider"] div[data-testid="stTickBar"] {{
             background: {ACCENT_LILAC} !important;
         }}
+        /* Slider track fill (the coloured part) */
+        .stSlider > div > div > div > div {{
+            background-color: {PRIMARY} !important;
+        }}
+        .stSlider > div > div > div > div > div {{
+            background-color: {PRIMARY} !important;
+        }}
+        [data-testid="stSlider"] [role="slider"] {{
+            background-color: {PRIMARY} !important;
+        }}
+        /* Slider track background (unfilled part) */
+        [data-testid="stSlider"] [data-testid="stTickBar"] > div {{
+            background: {ACCENT_LILAC} !important;
+        }}
 
-        /* Primary button → brand blue */
+        /* ── Button — brand blue, white text ───────────────────────── */
+        .stButton > button {{
+            background-color: {PRIMARY} !important;
+            color: {TEXT_REVERSED} !important;
+            border: none !important;
+            border-radius: 8px;
+        }}
+        .stButton > button:hover {{
+            background-color: {SECONDARY} !important;
+            color: {TEXT_REVERSED} !important;
+        }}
         .stButton > button[kind="primary"],
         .stButton > button[data-testid="stBaseButton-primary"] {{
             background-color: {PRIMARY} !important;
             border-color: {PRIMARY} !important;
             color: {TEXT_REVERSED} !important;
-            border-radius: 8px;
         }}
-        .stButton > button[kind="primary"]:hover,
-        .stButton > button[data-testid="stBaseButton-primary"]:hover {{
-            background-color: {SECONDARY} !important;
-            border-color: {SECONDARY} !important;
+
+        /* ── Selectbox / Dropdown ──────────────────────────────────── */
+        div[data-baseweb="select"] {{
+            background-color: {BG_PAGE} !important;
+        }}
+        div[data-baseweb="select"] span {{
+            color: {TEXT_PRIMARY} !important;
+        }}
+        div[data-baseweb="select"] > div {{
+            background-color: {BG_PAGE} !important;
+            border-color: {BORDER} !important;
+        }}
+        /* Dropdown menu items */
+        [data-baseweb="menu"] li {{
+            color: {TEXT_PRIMARY} !important;
+            background-color: {BG_PAGE} !important;
+        }}
+        [data-baseweb="menu"] li:hover {{
+            background-color: {BG_CARDS} !important;
+        }}
+
+        /* ── Toggle styling ────────────────────────────────────────── */
+        .stToggle label span {{
+            color: {TEXT_PRIMARY} !important;
         }}
 
         /* ── Tab styling ───────────────────────────────────────────── */
@@ -264,10 +326,33 @@ def get_custom_css():
         details > summary > span {{
             color: {TEXT_PRIMARY} !important;
         }}
+        /* Expander content — white background, dark text */
+        .streamlit-expanderContent {{
+            background-color: {BG_PAGE} !important;
+            color: {TEXT_PRIMARY} !important;
+        }}
+        .streamlit-expanderContent p,
+        .streamlit-expanderContent span,
+        .streamlit-expanderContent div,
+        .streamlit-expanderContent label {{
+            color: {TEXT_PRIMARY} !important;
+        }}
+        /* Also target the newer Streamlit expander structure */
+        [data-testid="stExpander"] details[open] > div {{
+            background-color: {BG_PAGE} !important;
+        }}
+        [data-testid="stExpander"] div[data-testid="stExpanderDetails"] {{
+            background-color: {BG_PAGE} !important;
+        }}
 
         /* ── Dataframe / table text ────────────────────────────────── */
         .stDataFrame td, .stDataFrame th {{
             color: {TEXT_PRIMARY} !important;
+        }}
+
+        /* ── Spacing ───────────────────────────────────────────────── */
+        .block-container {{
+            padding-top: 1rem;
         }}
 
         /* ── Hide Streamlit default elements ───────────────────────── */
