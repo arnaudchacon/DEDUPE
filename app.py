@@ -73,9 +73,9 @@ def run_analysis(df_json, weights_tuple, threshold, use_blocking):
 
 # ── Header ───────────────────────────────────────────────────────────
 st.markdown("""
-<div class="main-header">
-    <h1>🔍 DedupPro — Probabilistic Record Deduplication</h1>
-    <p>Detect and score duplicate CRM records using Levenshtein distance with configurable field weights</p>
+<div class="header-banner">
+    <h1 style="color: #FFFFFF !important; margin: 0; font-size: 1.8rem;">🔍 DedupPro — Probabilistic Record Deduplication</h1>
+    <p class="header-subtitle" style="color: #CCD1FF !important; margin: 0.5rem 0 0 0; font-size: 0.95rem;">Detect and score duplicate CRM records using Levenshtein distance with configurable field weights</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -278,9 +278,10 @@ if duplicates:
 if blocking_stats and use_blocking:
     with st.expander("📊 Blocking Performance"):
         bc1, bc2, bc3 = st.columns(3)
-        bc1.metric("Total Possible Pairs", f"{blocking_stats['total_possible_pairs']:,}")
-        bc2.metric("Candidate Pairs (after blocking)", f"{blocking_stats['candidate_pairs']:,}")
-        bc3.metric("Reduction", f"{blocking_stats['reduction_percent']}%")
+        bc1.metric("Total Possible Comparisons (without blocking)", f"{blocking_stats['total_possible_pairs']:,}")
+        bc2.metric("Actual Comparisons (with blocking)", f"{blocking_stats['candidate_pairs']:,}")
+        bc3.metric("Computation Saved", f"{blocking_stats['reduction_percent']}%")
+        st.caption("Blocking groups records by shared attributes (company name prefix, email domain, city) so only records within the same block are compared. This reduces unnecessary comparisons while maintaining accuracy.")
 
 
 # ── Tabs ─────────────────────────────────────────────────────────────
@@ -308,49 +309,45 @@ with tab_pairs:
 
         st.markdown(f"**Showing {len(filtered)} pairs** (sorted by score, highest first)")
 
-        # Build the summary table
-        table_data = []
-        for i, dup in enumerate(filtered):
-            cls = dup["classification"]
-            if cls == "Definite Duplicate":
-                indicator = "🔴"
-            elif cls == "Probable Duplicate":
-                indicator = "🟠"
-            else:
-                indicator = "🟡"
-            table_data.append({
-                "": indicator,
-                "Score": dup["total_score"],
-                "Classification": cls,
-                "Record A": dup["company_a"],
-                "Record B": dup["company_b"],
-                "ID A": dup["record_id_a"],
-                "ID B": dup["record_id_b"],
-            })
-
-        table_df = pd.DataFrame(table_data)
-
-        # Show the table (paginated — 10 per page)
+        # Build HTML table — guaranteed white background, dark text
         PAGE_SIZE = 10
-        total_pages = max(1, (len(table_df) + PAGE_SIZE - 1) // PAGE_SIZE)
+        total_pages = max(1, (len(filtered) + PAGE_SIZE - 1) // PAGE_SIZE)
 
         if "pairs_page" not in st.session_state:
             st.session_state.pairs_page = 0
 
         page = st.session_state.pairs_page
         start_idx = page * PAGE_SIZE
-        end_idx = min(start_idx + PAGE_SIZE, len(table_df))
-        page_df = table_df.iloc[start_idx:end_idx]
+        end_idx = min(start_idx + PAGE_SIZE, len(filtered))
+        page_items = filtered[start_idx:end_idx]
 
-        st.dataframe(
-            page_df,
-            use_container_width=True,
-            hide_index=True,
-            column_config={
-                "Score": st.column_config.NumberColumn(format="%.1f"),
-                "": st.column_config.TextColumn(width="small"),
-            },
-        )
+        html_table = '<table style="width:100%; border-collapse:collapse; background:#FFFFFF; border-radius:8px; overflow:hidden;">'
+        html_table += '<thead><tr style="background:#F5F5F4; border-bottom:2px solid #CECDC9;">'
+        for col in ["Score", "Classification", "Record A", "Record B"]:
+            html_table += f'<th style="padding:12px 10px; text-align:left; color:#2A2A26; font-weight:600; font-size:0.85rem;">{col}</th>'
+        html_table += '</tr></thead><tbody>'
+
+        for i, dup in enumerate(page_items):
+            bg = "#FFFFFF" if i % 2 == 0 else "#F5F5F4"
+            sc = dup["total_score"]
+            if sc >= 90:
+                sc_color = "#D31245"
+                indicator = "🔴"
+            elif sc >= 75:
+                sc_color = "#DE8269"
+                indicator = "🟠"
+            else:
+                sc_color = "#F8B11E"
+                indicator = "🟡"
+            html_table += f'<tr style="background:{bg}; border-bottom:1px solid #CECDC9;">'
+            html_table += f'<td style="padding:10px; color:{sc_color}; font-weight:700; font-size:0.9rem;">{sc}</td>'
+            html_table += f'<td style="padding:10px; color:#2A2A26; font-size:0.85rem;">{indicator} {dup["classification"]}</td>'
+            html_table += f'<td style="padding:10px; color:#2A2A26; font-size:0.85rem;">{dup["company_a"]}</td>'
+            html_table += f'<td style="padding:10px; color:#2A2A26; font-size:0.85rem;">{dup["company_b"]}</td>'
+            html_table += '</tr>'
+
+        html_table += '</tbody></table>'
+        st.markdown(html_table, unsafe_allow_html=True)
 
         # Pagination controls
         nav_col1, nav_col2, nav_col3 = st.columns([1, 2, 1])
@@ -360,7 +357,7 @@ with tab_pairs:
                 st.rerun()
         with nav_col2:
             st.markdown(
-                f"<p style='text-align:center;color:{TEXT_SECONDARY}'>Page {page+1} of {total_pages}</p>",
+                f"<p style='text-align:center;color:#6A6960'>Page {page+1} of {total_pages}</p>",
                 unsafe_allow_html=True,
             )
         with nav_col3:

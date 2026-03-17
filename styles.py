@@ -1,6 +1,7 @@
 """
 Copeland brand colour scheme and custom CSS for DedupPro.
 Colours pulled from Copeland's actual website.
+LIGHT THEME ONLY. No black backgrounds anywhere.
 """
 
 # ── Backgrounds ──────────────────────────────────────────────────────
@@ -72,291 +73,328 @@ PLOTLY_LAYOUT = dict(
 
 
 def get_custom_css():
-    """Return custom CSS for the Streamlit app."""
-    return f"""
+    """Return custom CSS for the Streamlit app — LIGHT THEME ONLY."""
+    return """
     <style>
-        /* ── Google Fonts (fallback for Aileron) ────────────────────── */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        /* ══════════════════════════════════════════════════════════════
+           GLOBAL LIGHT THEME OVERRIDE — NO BLACK BACKGROUNDS ANYWHERE
+           ══════════════════════════════════════════════════════════════ */
+        [data-testid="stAppViewContainer"] {
+            background-color: #FFFFFF !important;
+        }
+        [data-testid="stHeader"] {
+            background-color: #FFFFFF !important;
+        }
+        .main .block-container {
+            background-color: #FFFFFF !important;
+        }
+        .stApp {
+            background-color: #FFFFFF !important;
+            color: #2A2A26 !important;
+        }
 
-        /* ── Global ────────────────────────────────────────────────── */
-        .stApp {{
-            background-color: {BG_PAGE};
-            font-family: "Aileron", "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
-            font-weight: 300;
-            color: {TEXT_PRIMARY};
-        }}
+        /* Force ALL text to dark on main content */
+        .main p, .main span, .main label, .main div,
+        .main li, .main td, .main th,
+        .main h1, .main h2, .main h3, .main h4, .main h5, .main h6 {
+            color: #2A2A26 !important;
+        }
 
-        /* Force all Streamlit text elements to dark */
-        .stApp p, .stApp span, .stApp label,
-        .stApp li, .stApp td, .stApp th, .stApp h1, .stApp h2,
-        .stApp h3, .stApp h4, .stApp h5, .stApp h6,
-        .stApp .stMarkdown, .stApp .stText {{
-            color: {TEXT_PRIMARY} !important;
-        }}
-
-        /* ── Header banner ─────────────────────────────────────────── */
-        .main-header {{
-            background-color: {BG_HEADER};
-            padding: 1.8rem 2rem;
-            border-radius: 12px;
+        /* ── HEADER BANNER — white text on navy ─────────────────────── */
+        .header-banner {
+            background-color: #000E57 !important;
+            padding: 2rem;
+            border-radius: 8px;
             margin-bottom: 1.5rem;
-        }}
-        .main-header h1 {{
-            color: {TEXT_REVERSED} !important;
-            font-family: "STIX Two Text", "Times New Roman", serif;
-            font-size: 1.8rem;
-            font-weight: 400;
-            margin: 0;
-        }}
-        .main-header p {{
-            color: {ACCENT_LILAC} !important;
-            margin: 0.3rem 0 0 0;
-            font-size: 0.95rem;
-        }}
+        }
+        .header-banner h1,
+        .header-banner h2,
+        .header-banner p,
+        .header-banner span,
+        .header-banner div {
+            color: #FFFFFF !important;
+        }
+        .header-banner .header-subtitle {
+            color: #CCD1FF !important;
+        }
 
-        /* ── Summary metric cards ──────────────────────────────────── */
-        .metric-card {{
-            background: {BG_PAGE};
+        /* ── SUMMARY METRIC CARDS ───────────────────────────────────── */
+        .metric-card {
+            background: #FFFFFF !important;
             border-radius: 10px;
             padding: 1.2rem 1rem;
-            box-shadow: 0 1px 4px {SHADOW};
-            border-top: 4px solid {PRIMARY};
-            border-left: none;
+            box-shadow: 0 1px 4px #E1E1DE;
+            border-top: 4px solid #0F3CFF;
             text-align: center;
-        }}
-        .metric-card .metric-value {{
+        }
+        .metric-card .metric-value {
             font-size: 2rem;
             font-weight: 700;
-            color: {TEXT_PRIMARY} !important;
+            color: #2A2A26 !important;
             margin: 0.3rem 0;
-        }}
-        .metric-card .metric-label {{
+        }
+        .metric-card .metric-label {
             font-size: 0.8rem;
-            color: {TEXT_SECONDARY} !important;
+            color: #6A6960 !important;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             font-weight: 600;
-        }}
+        }
 
-        /* ── Score badges ──────────────────────────────────────────── */
-        .score-badge {{
+        /* ── SCORE BADGES ───────────────────────────────────────────── */
+        .score-badge {
             display: inline-block;
             padding: 4px 12px;
             border-radius: 12px;
             font-weight: 600;
             font-size: 0.85rem;
-        }}
-        .score-definite {{
-            background-color: {TEXT_ERROR};
-            color: {TEXT_REVERSED} !important;
-        }}
-        .score-probable {{
-            background-color: {ACCENT_CORAL};
-            color: {TEXT_REVERSED} !important;
-        }}
-        .score-possible {{
-            background-color: {TEXT_WARNING};
-            color: {TEXT_PRIMARY} !important;
-        }}
+        }
+        .score-definite {
+            background-color: #D31245;
+            color: #FFFFFF !important;
+        }
+        .score-probable {
+            background-color: #DE8269;
+            color: #FFFFFF !important;
+        }
+        .score-possible {
+            background-color: #F8B11E;
+            color: #2A2A26 !important;
+        }
 
-        /* ── Detail card (pair comparison) ─────────────────────────── */
-        .detail-card {{
-            background: {BG_PAGE};
+        /* ── DETAIL CARD (pair comparison) ──────────────────────────── */
+        .detail-card {
+            background: #FFFFFF !important;
             border-radius: 10px;
             padding: 1.5rem;
             margin: 1rem 0;
-            box-shadow: 0 2px 8px {SHADOW};
-            border: 1px solid {BORDER};
-        }}
-        .detail-card-header {{
+            box-shadow: 0 2px 8px #E1E1DE;
+            border: 1px solid #CECDC9;
+        }
+        .detail-card * {
+            color: #2A2A26 !important;
+        }
+        .detail-card .detail-card-header {
             font-size: 1.1rem;
             font-weight: 600;
-            color: {SECONDARY} !important;
+            color: #000E57 !important;
             margin-bottom: 0.5rem;
             padding-bottom: 0.5rem;
-            border-bottom: 2px solid {ACCENT_LILAC};
-        }}
+            border-bottom: 2px solid #CCD1FF;
+        }
+        .detail-card .score-badge {
+            color: #FFFFFF !important;
+        }
+        .detail-card .score-possible {
+            color: #2A2A26 !important;
+        }
 
-        /* ── Pair card (summary box) ──────────────────────────────── */
-        .pair-card {{
-            background: {BG_PAGE};
+        /* ── PAIR CARD (summary box) ────────────────────────────────── */
+        .pair-card {
+            background: #FFFFFF !important;
             border-radius: 10px;
             padding: 1.2rem;
             margin-bottom: 1rem;
-            box-shadow: 0 1px 4px {SHADOW};
-            border: 1px solid {BORDER};
-            color: {TEXT_PRIMARY} !important;
-        }}
-        .pair-card h4, .pair-card li, .pair-card strong {{
-            color: {TEXT_PRIMARY} !important;
-        }}
+            box-shadow: 0 1px 4px #E1E1DE;
+            border: 1px solid #CECDC9;
+        }
+        .pair-card * {
+            color: #2A2A26 !important;
+        }
 
-        /* ── Cluster card ──────────────────────────────────────────── */
-        .cluster-card {{
-            background: {BG_PAGE};
-            border-radius: 10px;
-            padding: 1rem;
-            margin-bottom: 0.8rem;
-            border: 1px solid {BORDER};
-            box-shadow: 0 1px 2px {SHADOW};
-        }}
-        .cluster-header {{
+        /* ── CLUSTER HEADER ─────────────────────────────────────────── */
+        .cluster-header {
             font-weight: 600;
-            color: {SECONDARY} !important;
+            color: #000E57 !important;
             font-size: 1rem;
             margin-bottom: 0.5rem;
-        }}
+        }
 
-        /* ── Footer ────────────────────────────────────────────────── */
-        .footer {{
+        /* ── FOOTER ─────────────────────────────────────────────────── */
+        .footer {
             text-align: center;
             padding: 1.5rem;
-            color: {TEXT_SECONDARY} !important;
+            color: #6A6960 !important;
             font-size: 0.85rem;
-            border-top: 1px solid {BORDER};
+            border-top: 1px solid #CECDC9;
             margin-top: 2rem;
-        }}
-        .footer a {{
-            color: {TEXT_LINK} !important;
+        }
+        .footer * {
+            color: #6A6960 !important;
+        }
+        .footer a {
+            color: #3155A4 !important;
             text-decoration: none;
-        }}
-        .footer strong {{
-            color: {TEXT_PRIMARY} !important;
-        }}
+        }
+        .footer strong {
+            color: #2A2A26 !important;
+        }
 
-        /* ── Sidebar ───────────────────────────────────────────────── */
-        section[data-testid="stSidebar"] {{
-            background-color: {BG_SIDEBAR};
-        }}
-        section[data-testid="stSidebar"] p,
-        section[data-testid="stSidebar"] label,
-        section[data-testid="stSidebar"] span,
-        section[data-testid="stSidebar"] div {{
-            color: {TEXT_PRIMARY} !important;
-        }}
+        /* ══════════════════════════════════════════════════════════════
+           SIDEBAR — light grey background, dark text, blue controls
+           ══════════════════════════════════════════════════════════════ */
+        [data-testid="stSidebar"] {
+            background-color: #F5F5F4 !important;
+        }
+        [data-testid="stSidebar"] * {
+            color: #2A2A26 !important;
+        }
 
-        /* ── Slider — brand blue thumb, track, and fill ────────────── */
-        .stSlider [data-baseweb="slider"] div[role="slider"] {{
-            background-color: {PRIMARY} !important;
-            border-color: {PRIMARY} !important;
-        }}
-        .stSlider [data-baseweb="slider"] div[data-testid="stTickBar"] {{
-            background: {ACCENT_LILAC} !important;
-        }}
-        /* Slider track fill (the coloured part) */
-        .stSlider > div > div > div > div {{
-            background-color: {PRIMARY} !important;
-        }}
-        .stSlider > div > div > div > div > div {{
-            background-color: {PRIMARY} !important;
-        }}
-        [data-testid="stSlider"] [role="slider"] {{
-            background-color: {PRIMARY} !important;
-        }}
-        /* Slider track background (unfilled part) */
-        [data-testid="stSlider"] [data-testid="stTickBar"] > div {{
-            background: {ACCENT_LILAC} !important;
-        }}
+        /* ── SLIDER — ALL BLUE ──────────────────────────────────────── */
+        [data-testid="stSlider"] > div > div > div {
+            background: #0F3CFF !important;
+        }
+        [data-testid="stSlider"] [role="slider"] {
+            background-color: #0F3CFF !important;
+            border-color: #0F3CFF !important;
+        }
+        .stSlider div[data-baseweb="slider"] div[role="progressbar"] {
+            background-color: #0F3CFF !important;
+        }
+        .stSlider [data-baseweb="slider"] div[data-testid="stTickBar"] {
+            background: #CCD1FF !important;
+        }
+        /* Slider filled track */
+        .stSlider > div > div > div > div {
+            background-color: #0F3CFF !important;
+        }
+        .stSlider > div > div > div > div > div {
+            background-color: #0F3CFF !important;
+        }
 
-        /* ── Button — brand blue, white text ───────────────────────── */
-        .stButton > button {{
-            background-color: {PRIMARY} !important;
-            color: {TEXT_REVERSED} !important;
+        /* ── TOGGLE — BLUE WHEN ACTIVE ──────────────────────────────── */
+        [data-testid="stToggle"] span[data-checked="true"] {
+            background-color: #0F3CFF !important;
+        }
+        /* Broader toggle selectors */
+        .stToggle [data-baseweb="toggle"] input:checked + div {
+            background-color: #0F3CFF !important;
+        }
+        .stToggle div[role="checkbox"][aria-checked="true"] {
+            background-color: #0F3CFF !important;
+        }
+
+        /* ── BUTTONS — WHITE TEXT ON BLUE ───────────────────────────── */
+        .stButton > button {
+            background-color: #0F3CFF !important;
+            color: #FFFFFF !important;
             border: none !important;
+            font-weight: 600 !important;
             border-radius: 8px;
-        }}
-        .stButton > button:hover {{
-            background-color: {SECONDARY} !important;
-            color: {TEXT_REVERSED} !important;
-        }}
-        .stButton > button[kind="primary"],
-        .stButton > button[data-testid="stBaseButton-primary"] {{
-            background-color: {PRIMARY} !important;
-            border-color: {PRIMARY} !important;
-            color: {TEXT_REVERSED} !important;
-        }}
+        }
+        .stButton > button:hover {
+            background-color: #000E57 !important;
+            color: #FFFFFF !important;
+        }
+        .stButton > button:active {
+            background-color: #000E57 !important;
+            color: #FFFFFF !important;
+        }
+        /* Sidebar button specifically */
+        [data-testid="stSidebar"] .stButton > button {
+            background-color: #0F3CFF !important;
+            color: #FFFFFF !important;
+        }
 
-        /* ── Selectbox / Dropdown ──────────────────────────────────── */
-        div[data-baseweb="select"] {{
-            background-color: {BG_PAGE} !important;
-        }}
-        div[data-baseweb="select"] span {{
-            color: {TEXT_PRIMARY} !important;
-        }}
-        div[data-baseweb="select"] > div {{
-            background-color: {BG_PAGE} !important;
-            border-color: {BORDER} !important;
-        }}
-        /* Dropdown menu items */
-        [data-baseweb="menu"] li {{
-            color: {TEXT_PRIMARY} !important;
-            background-color: {BG_PAGE} !important;
-        }}
-        [data-baseweb="menu"] li:hover {{
-            background-color: {BG_CARDS} !important;
-        }}
+        /* ── DOWNLOAD BUTTONS — white bg, blue text, blue border ──── */
+        .stDownloadButton > button {
+            background-color: #FFFFFF !important;
+            color: #0F3CFF !important;
+            border: 1px solid #0F3CFF !important;
+            font-weight: 600 !important;
+            border-radius: 8px;
+        }
+        .stDownloadButton > button:hover {
+            background-color: #F5F5F4 !important;
+            color: #0F3CFF !important;
+        }
 
-        /* ── Toggle styling ────────────────────────────────────────── */
-        .stToggle label span {{
-            color: {TEXT_PRIMARY} !important;
-        }}
+        /* ── SELECTBOX / DROPDOWN — white bg, dark text ─────────────── */
+        div[data-baseweb="select"] {
+            background-color: #FFFFFF !important;
+        }
+        div[data-baseweb="select"] span {
+            color: #2A2A26 !important;
+        }
+        div[data-baseweb="select"] > div {
+            background-color: #FFFFFF !important;
+            border-color: #CECDC9 !important;
+        }
+        [data-baseweb="menu"] {
+            background-color: #FFFFFF !important;
+        }
+        [data-baseweb="menu"] li {
+            color: #2A2A26 !important;
+            background-color: #FFFFFF !important;
+        }
+        [data-baseweb="menu"] li:hover {
+            background-color: #F5F5F4 !important;
+        }
 
-        /* ── Tab styling ───────────────────────────────────────────── */
-        .stTabs [data-baseweb="tab-list"] button {{
-            color: {TEXT_SECONDARY} !important;
+        /* ── DATAFRAME / TABLE — force light ────────────────────────── */
+        [data-testid="stDataFrame"] {
+            background-color: #FFFFFF !important;
+        }
+        [data-testid="stDataFrame"] * {
+            color: #2A2A26 !important;
+        }
+        [data-testid="stDataFrame"] thead tr {
+            background-color: #F5F5F4 !important;
+        }
+        .stDataFrame, .stDataFrame td, .stDataFrame th {
+            color: #2A2A26 !important;
+            background-color: #FFFFFF !important;
+        }
+
+        /* ── TABS — dark text, blue active ──────────────────────────── */
+        .stTabs [data-baseweb="tab-list"] button {
+            color: #6A6960 !important;
             font-weight: 500;
-        }}
-        .stTabs [data-baseweb="tab-list"] button[aria-selected="true"] {{
-            color: {PRIMARY} !important;
-            border-bottom-color: {PRIMARY} !important;
-        }}
+        }
+        .stTabs [data-baseweb="tab-list"] button[aria-selected="true"] {
+            color: #0F3CFF !important;
+            border-bottom-color: #0F3CFF !important;
+        }
 
-        /* ── Expander styling ──────────────────────────────────────── */
-        .streamlit-expanderHeader {{
-            background-color: {BG_CARDS} !important;
-            color: {TEXT_PRIMARY} !important;
-            font-size: 0.95rem;
-        }}
-        .streamlit-expanderHeader p, .streamlit-expanderHeader span {{
-            color: {TEXT_PRIMARY} !important;
-        }}
-        details > summary {{
-            color: {TEXT_PRIMARY} !important;
-        }}
-        details > summary > span {{
-            color: {TEXT_PRIMARY} !important;
-        }}
-        /* Expander content — white background, dark text */
-        .streamlit-expanderContent {{
-            background-color: {BG_PAGE} !important;
-            color: {TEXT_PRIMARY} !important;
-        }}
-        .streamlit-expanderContent p,
-        .streamlit-expanderContent span,
-        .streamlit-expanderContent div,
-        .streamlit-expanderContent label {{
-            color: {TEXT_PRIMARY} !important;
-        }}
-        /* Also target the newer Streamlit expander structure */
-        [data-testid="stExpander"] details[open] > div {{
-            background-color: {BG_PAGE} !important;
-        }}
-        [data-testid="stExpander"] div[data-testid="stExpanderDetails"] {{
-            background-color: {BG_PAGE} !important;
-        }}
+        /* ── EXPANDER — light bg, dark text ─────────────────────────── */
+        .streamlit-expanderHeader {
+            background-color: #F5F5F4 !important;
+            color: #2A2A26 !important;
+        }
+        .streamlit-expanderContent {
+            background-color: #FFFFFF !important;
+            color: #2A2A26 !important;
+        }
+        [data-testid="stExpander"] * {
+            color: #2A2A26 !important;
+        }
+        [data-testid="stExpander"] details[open] > div {
+            background-color: #FFFFFF !important;
+        }
+        [data-testid="stExpanderDetails"] {
+            background-color: #FFFFFF !important;
+        }
 
-        /* ── Dataframe / table text ────────────────────────────────── */
-        .stDataFrame td, .stDataFrame th {{
-            color: {TEXT_PRIMARY} !important;
-        }}
+        /* ── METRIC WIDGET (blocking stats) ─────────────────────────── */
+        [data-testid="stMetric"] {
+            background-color: #FFFFFF !important;
+        }
+        [data-testid="stMetric"] * {
+            color: #2A2A26 !important;
+        }
 
-        /* ── Spacing ───────────────────────────────────────────────── */
-        .block-container {{
+        /* ── TEXT INPUT / FILE UPLOADER ──────────────────────────────── */
+        [data-testid="stFileUploader"] {
+            background-color: #FFFFFF !important;
+        }
+
+        /* ── SPACING ────────────────────────────────────────────────── */
+        .block-container {
             padding-top: 1rem;
-        }}
+        }
 
-        /* ── Hide Streamlit default elements ───────────────────────── */
-        #MainMenu {{visibility: hidden;}}
-        footer {{visibility: hidden;}}
+        /* ── HIDE STREAMLIT DEFAULT ELEMENTS ────────────────────────── */
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
     </style>
     """
