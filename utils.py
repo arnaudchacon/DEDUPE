@@ -79,15 +79,13 @@ def classify_score(score):
 
 
 def score_color(score):
-    """Return hex color for a given score."""
-    if score >= 90:
-        return "#EF4444"  # red
-    elif score >= 75:
-        return "#F59E0B"  # amber
+    """Return hex color for a given similarity score (higher = greener)."""
+    if score >= 80:
+        return "#93C8A1"  # jade green — high similarity
     elif score >= 60:
-        return "#FBBF24"  # yellow
+        return "#F8B11E"  # amber — medium similarity
     else:
-        return "#22C55E"  # green
+        return "#D31245"  # red — low similarity
 
 
 def generate_diff_html(text_a, text_b):
@@ -112,11 +110,11 @@ def generate_diff_html(text_a, text_b):
             html_a.append(text_a[a_start:a_end])
             html_b.append(text_b[b_start:b_end])
         elif op == "replace":
-            html_a.append(f'<span style="background-color:#FECACA;color:#991B1B;font-weight:bold;padding:1px 2px;border-radius:2px">{text_a[a_start:a_end]}</span>')
-            html_b.append(f'<span style="background-color:#FECACA;color:#991B1B;font-weight:bold;padding:1px 2px;border-radius:2px">{text_b[b_start:b_end]}</span>')
+            html_a.append(f'<span style="background-color:#FDECED;color:#D31245;font-weight:bold;padding:1px 2px;border-radius:2px">{text_a[a_start:a_end]}</span>')
+            html_b.append(f'<span style="background-color:#FDECED;color:#D31245;font-weight:bold;padding:1px 2px;border-radius:2px">{text_b[b_start:b_end]}</span>')
         elif op == "delete":
-            html_a.append(f'<span style="background-color:#FECACA;color:#991B1B;font-weight:bold;padding:1px 2px;border-radius:2px">{text_a[a_start:a_end]}</span>')
+            html_a.append(f'<span style="background-color:#FDECED;color:#D31245;font-weight:bold;padding:1px 2px;border-radius:2px">{text_a[a_start:a_end]}</span>')
         elif op == "insert":
-            html_b.append(f'<span style="background-color:#FECACA;color:#991B1B;font-weight:bold;padding:1px 2px;border-radius:2px">{text_b[b_start:b_end]}</span>')
+            html_b.append(f'<span style="background-color:#FDECED;color:#D31245;font-weight:bold;padding:1px 2px;border-radius:2px">{text_b[b_start:b_end]}</span>')
 
     return "".join(html_a), "".join(html_b)
